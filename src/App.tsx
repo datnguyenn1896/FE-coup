@@ -223,6 +223,24 @@ function App() {
         >
           Random All
         </button>
+        <select
+          name="chessList"
+          id="chess-dropdown"
+          value={"bk"}
+          onChange={(e) => {
+            const chess = e.target.value as CHESS_PIECES;
+
+            setCurrentChessBoard(
+              [...currentChessBoard].map((row) =>
+                row.map((c) => (c ? { ...c, show: false, type: chess } : ""))
+              )
+            );
+          }}
+        >
+          {Object.keys(limitChessByType).map((chess) => (
+            <option value={chess}>{chess}</option>
+          ))}
+        </select>
       </div>
     </>
   );
