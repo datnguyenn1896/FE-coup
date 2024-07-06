@@ -1,43 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import {
+  ACCEPTED_POSITION_INIT_RANDOM,
   CHESS_PIECES,
   CHESSS_OBJ,
   INIT_CHESS_BOARD,
   LIMIT_CHESS_BY_TYPE,
 } from "./constants";
-export const ACCEPTED_POSITION_INIT_RANDOM: Array<[number, number]> = [
-  [0, 0],
-  [0, 1],
-  [0, 2],
-  [0, 3],
-  [0, 5],
-  [0, 6],
-  [0, 7],
-  [0, 8],
-  [2, 1],
-  [2, 7],
-  [3, 0],
-  [3, 2],
-  [3, 4],
-  [3, 6],
-  [3, 8],
-  [7, 1],
-  [7, 7],
-  [6, 0],
-  [6, 2],
-  [6, 4],
-  [6, 6],
-  [6, 8],
-  [9, 0],
-  [9, 1],
-  [9, 2],
-  [9, 3],
-  [9, 5],
-  [9, 6],
-  [9, 7],
-  [9, 8],
-];
+
 function App() {
   const [isRandomize, setIsRandomize] = useState(false);
   const [selectedPostion, setSelectedPostion] = useState<{
@@ -158,10 +128,15 @@ function App() {
           i--;
           continue;
         }
+
         const randomIndex = Math.floor(Math.random() * randomedPosition.length);
         const [randomRow, randomCol] = randomedPosition[randomIndex]
           .split("-")
           .map(Number);
+        const isChessDown = ACCEPTED_POSITION_INIT_RANDOM.some(
+          (pos) => pos[0] === randomRow && pos[1] === randomCol
+        );
+
         randomedPosition.splice(randomIndex, 1);
         chessBoard[randomRow][randomCol] = {
           type: type,
