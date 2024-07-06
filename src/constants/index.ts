@@ -13,7 +13,9 @@ export type CHESS_PIECES =
   | "rt"
   | "rs"
   | "rk"
-  | "";
+  | ""
+  | "bn"
+  | "rn";
 export type CHESSS_OBJ = { key: string; type: CHESS_PIECES };
 
 export const INIT_CHESS_BOARD: Array<(CHESSS_OBJ & { show?: boolean }) | "">[] =
@@ -174,19 +176,23 @@ export const INIT_CHESS_BOARD: Array<(CHESSS_OBJ & { show?: boolean }) | "">[] =
       },
     ],
   ];
-export const MAX_CHESS_BY_TYPE: Record<Exclude<CHESS_PIECES, "">, number> = {
-  bx: 2,
-  bm: 2,
-  bt: 2,
-  bs: 2,
+export const KING_POSITION = {
+  rk: { row: 9, col: 4 },
+  bk: { row: 0, col: 4 },
+};
+export const LIMIT_CHESS_BY_TYPE = {
+  rk: 1,
+  bk: 1,
+  rp: 2,
   bp: 2,
+  rx: 2,
+  bx: 2,
+  rm: 2,
+  bm: 2,
+  rt: 2,
+  bt: 2,
+  rs: 2,
+  bs: 2,
   bb: 5,
   rb: 5,
-  rp: 2,
-  rx: 2,
-  rm: 2,
-  rt: 2,
-  rs: 2,
-  bk: 1,
-  rk: 1,
 };

@@ -4,7 +4,7 @@ import {
   CHESS_PIECES,
   CHESSS_OBJ,
   INIT_CHESS_BOARD,
-  MAX_CHESS_BY_TYPE,
+  LIMIT_CHESS_BY_TYPE,
 } from "./constants";
 export const ACCEPTED_POSITION_INIT_RANDOM: Array<[number, number]> = [
   [0, 0],
@@ -39,81 +39,46 @@ export const ACCEPTED_POSITION_INIT_RANDOM: Array<[number, number]> = [
   [9, 8],
 ];
 function App() {
-  const [isRandomize, setIsRandomize] = useState(true);
-  const [isInit, setIsInit] = useState(true);
-  const [modePlay, setModePlay] = useState<"hide" | "show">("hide");
+  const [isRandomize, setIsRandomize] = useState(false);
   const [selectedPostion, setSelectedPostion] = useState<{
     row: number;
     col: number;
   }>();
+  const initChessBoard: (
+    | ""
+    | (CHESSS_OBJ & {
+        show?: boolean;
+      })
+  )[][] = JSON.parse(JSON.stringify(INIT_CHESS_BOARD));
+  const limitChessByType = JSON.parse(JSON.stringify(LIMIT_CHESS_BY_TYPE));
   const [selectedChess, setSelectedChess] = useState<CHESSS_OBJ | "">();
   const [currentChessBoard, setCurrentChessBoard] = useState<
     Array<(CHESSS_OBJ & { show?: boolean }) | "">[]
   >(
-    INIT_CHESS_BOARD.map((row) =>
+    [...initChessBoard].map((row) =>
       row.map((c) => (c ? { ...c, show: false } : ""))
     )
   );
   const [log, setLog] = useState<string[]>([]);
-  useEffect(() => {
-    if (isRandomize) {
-      randomizeChessInit();
-    } else {
-      setCurrentChessBoard(INIT_CHESS_BOARD);
-    }
-  }, [isRandomize]);
   const randomizeChessInit = () => {
-    const chessTypes: CHESS_PIECES[] = Object.keys(
-      MAX_CHESS_BY_TYPE
-    ) as CHESS_PIECES[];
-    const randomizedBoard: Array<CHESSS_OBJ>[] = INIT_CHESS_BOARD.map((row) =>
-      row.map((c) => ({
-        type: "",
-        key: c ? c.key : c,
-      }))
+    const randomizedBoard: Array<CHESSS_OBJ>[] = [...initChessBoard].map(
+      (row, rowIndex) => {
+        const isBlack = rowIndex < 5;
+        return row.map((c) => {
+          return {
+            type: c
+              ? c.type.endsWith("k")
+                ? c.type
+                : isBlack
+                ? "bn"
+                : "rn"
+              : "",
+            key: c ? c.key : c,
+          };
+        });
+      }
     );
-    const listRandomBlackChess = ACCEPTED_POSITION_INIT_RANDOM.slice(0, 15);
-    const listRandomRedChess = ACCEPTED_POSITION_INIT_RANDOM.slice(15);
 
-    chessTypes.forEach((type) => {
-      if (type === "") return;
-      if (type === "rk" || type === "bk") {
-        const col = 4;
-        const row = type === "rk" ? 9 : 0;
-        randomizedBoard[row][col].type = type;
-        return;
-      }
-      const maxChess = MAX_CHESS_BY_TYPE[type];
-      let count = 0;
-
-      while (count < maxChess) {
-        let randomRow = 0;
-        let randomCol = 0;
-        if (type.startsWith("r")) {
-          const randomPositionAcepeted = Math.floor(
-            Math.random() * listRandomRedChess.length
-          );
-          [randomRow, randomCol] = listRandomRedChess[randomPositionAcepeted];
-          listRandomRedChess.splice(randomPositionAcepeted, 1);
-        } else {
-          const randomPositionAcepeted = Math.floor(
-            Math.random() * listRandomBlackChess.length
-          );
-          [randomRow, randomCol] = listRandomBlackChess[randomPositionAcepeted];
-          listRandomBlackChess.splice(randomPositionAcepeted, 1);
-        }
-
-        if (
-          randomizedBoard[randomRow][randomCol].type === "" &&
-          randomizedBoard
-        ) {
-          randomizedBoard[randomRow][randomCol].type = type;
-          count++;
-        } else {
-          count++;
-        }
-      }
-    });
     setCurrentChessBoard(randomizedBoard);
   };
   const moveChess = (from: [number, number], to: [number, number]) => {
@@ -127,12 +92,88 @@ function App() {
       `Move from ${from} to ${to} (${selectedChess ? selectedChess?.key : ""})`,
     ]);
   };
-  const showChess = (row: number, col: number) => {
+  const showChess = ({
+    row,
+    col,
+    type,
+  }: {
+    row: number;
+    col: number;
+    type?: CHESS_PIECES;
+  }) => {
     const newChessBoard = [...currentChessBoard];
-    if (!newChessBoard[row][col]) return;
+    if (!newChessBoard?.[row]?.[col]) return;
     newChessBoard[row][col].show = true;
+    if (type) {
+      newChessBoard[row][col].type = type;
+    }
     setCurrentChessBoard(newChessBoard);
   };
+  const handleMove = (from: [number, number], to: [number, number]) => {
+    moveChess(from, to);
+  };
+  const randomPosition = () => {
+    const chessLimited = { ...limitChessByType };
+    let randomedPosition: string[] = [];
+    initChessBoard.forEach((row, rowIndex) => {
+      row.forEach((_, colIndex) => {
+        randomedPosition.push(`${rowIndex}-${colIndex}`);
+      });
+    });
+
+    const chessBoard = [...initChessBoard].map(
+      (row) => row.map(() => "") as any
+    );
+    const types = Object.keys(limitChessByType) as CHESS_PIECES[];
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i];
+      const limit = chessLimited[type];
+      if (limit > 0) {
+        if (randomedPosition.length === 0) break;
+        if (type === "bk") {
+          const randomRow = Math.floor(Math.random() * 3);
+          const randomCol = Math.floor(Math.random() * 3) + 3;
+          randomedPosition = randomedPosition.filter(
+            (pos) => pos !== `${randomRow}-${randomCol}`
+          );
+          chessBoard[randomRow][randomCol] = {
+            type: type,
+            key: `${type}${limit}`,
+          };
+          chessLimited[type] -= 1;
+          i--;
+          continue;
+        }
+        if (type === "rk") {
+          const randomRow = Math.floor(Math.random() * 3) + 7;
+          const randomCol = Math.floor(Math.random() * 3) + 3;
+          randomedPosition = randomedPosition.filter(
+            (pos) => pos !== `${randomRow}-${randomCol}`
+          );
+          chessBoard[randomRow][randomCol] = {
+            type: type,
+            key: `${type}${limit}`,
+          };
+          chessLimited[type] -= 1;
+          i--;
+          continue;
+        }
+        const randomIndex = Math.floor(Math.random() * randomedPosition.length);
+        const [randomRow, randomCol] = randomedPosition[randomIndex]
+          .split("-")
+          .map(Number);
+        randomedPosition.splice(randomIndex, 1);
+        chessBoard[randomRow][randomCol] = {
+          type: type,
+          key: `${type}${limit}`,
+        };
+        chessLimited[type] -= 1;
+        i--;
+      }
+    }
+    setCurrentChessBoard(chessBoard);
+  };
+
   return (
     <>
       <div className="w-[694px] h-[789px] bg-[url('./assets/images/broad.png')] p-3">
@@ -145,13 +186,12 @@ function App() {
                   className={`w-[77px] h-[74px] flex justify-center items-center scale-[1.3] `}
                   onClick={() => {
                     if (selectedPostion) {
-                      moveChess(
+                      handleMove(
                         [selectedPostion.row, selectedPostion.col],
                         [rowIndex, colIndex]
                       );
                       setSelectedPostion(undefined);
                       setSelectedChess("");
-                      showChess(rowIndex, colIndex);
                     } else {
                       if (!col || col.type === "") return;
                       setSelectedPostion({ row: rowIndex, col: colIndex });
@@ -159,34 +199,18 @@ function App() {
                     }
                   }}
                 >
-                  {col &&
-                    col.type !== "" &&
-                    (modePlay === "hide" &&
-                    col.type !== "bk" &&
-                    col.type !== "rk" &&
-                    !col.show ? (
-                      <div
-                        className={`w-[50px] h-[50px] flex justify-center items-center transition-all duration-500 ${
-                          rowIndex === selectedPostion?.row &&
-                          colIndex === selectedPostion?.col
-                            ? "scale-[1.2]"
-                            : ""
-                        }`}
-                      >
-                        <img src={`src/assets/images/bn.png`} alt="" />
-                      </div>
-                    ) : (
-                      <div
-                        className={`w-[50px] h-[50px] flex justify-center items-center transition-all duration-500 ${
-                          rowIndex === selectedPostion?.row &&
-                          colIndex === selectedPostion?.col
-                            ? "scale-[1.2]"
-                            : ""
-                        }`}
-                      >
-                        <img src={`src/assets/images/${col.type}.png`} alt="" />
-                      </div>
-                    ))}
+                  {col && (
+                    <div
+                      className={`w-[50px] h-[50px] flex justify-center items-center transition-all duration-500 ${
+                        rowIndex === selectedPostion?.row &&
+                        colIndex === selectedPostion?.col
+                          ? "scale-[1.2]"
+                          : ""
+                      }`}
+                    >
+                      <img src={`src/assets/images/${col.type}.png`} alt="" />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -197,30 +221,32 @@ function App() {
         <button
           className="bg-purple-200 py-2 px-3 rounded-lg"
           onClick={() => {
-            isRandomize ? setIsRandomize(false) : setIsRandomize(true);
-          }}
-        >
-          {isRandomize ? "Randomize" : "Unrandomize"}
-        </button>
-        <button
-          className="bg-purple-200 py-2 px-3 rounded-lg"
-          onClick={() => {
-            modePlay === "hide" ? setModePlay("show") : setModePlay("hide");
-          }}
-        >
-          Show/hide
-        </button>
-        <button
-          className="bg-purple-200 py-2 px-3 rounded-lg"
-          onClick={() => {
-            setIsInit(true);
-            setCurrentChessBoard(INIT_CHESS_BOARD);
+            setCurrentChessBoard([...initChessBoard]);
             if (isRandomize) {
               randomizeChessInit();
             }
           }}
         >
           Reset
+        </button>
+        <button
+          className="bg-purple-200 py-2 px-3 rounded-lg"
+          onClick={() => {
+            if (!isRandomize) {
+              randomizeChessInit();
+            } else {
+              setCurrentChessBoard(initChessBoard);
+            }
+            setIsRandomize(!isRandomize);
+          }}
+        >
+          {isRandomize ? "Cờ úp" : "Cờ ngửa"}
+        </button>
+        <button
+          className="bg-purple-200 py-2 px-3 rounded-lg"
+          onClick={randomPosition}
+        >
+          Random All
         </button>
       </div>
     </>
