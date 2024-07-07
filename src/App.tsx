@@ -173,14 +173,14 @@ function App() {
   };
   return (
     <>
-      <div className="w-[694px] h-[789px] bg-[url('./assets/images/broad.png')] p-3 object-scale-down bg-no-repeat">
+      <div className="w-[580px] h-[660px] bg-[url('./assets/images/broad.png')] p-3 object-scale-down bg-no-repeat bg-cover">
         {currentChessBoard.map((row, rowIndex) => (
           <div className="flex" key={rowIndex}>
             {row.map((col, colIndex: number) => {
               return (
                 <div
                   key={colIndex}
-                  className={`w-[70px] h-[66px] flex justify-center items-center gap-0 scale-[1.7] m-1`}
+                  className={`w-[70px] h-[62px] flex justify-center items-center gap-0 scale-[1.4] mx-1`}
                   onClick={() => {
                     if (selectedPostion) {
                       handleMove(
