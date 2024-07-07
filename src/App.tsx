@@ -5,7 +5,7 @@ import {
   CHESS_PIECES,
   CHESSS_OBJ,
   INIT_CHESS_BOARD,
-  LIMIT_CHESS_BY_TYPE
+  LIMIT_CHESS_BY_TYPE,
 } from "./constants";
 
 function App() {
@@ -26,6 +26,7 @@ function App() {
   )[][] = JSON.parse(JSON.stringify(INIT_CHESS_BOARD));
   const limitChessByType = JSON.parse(JSON.stringify(LIMIT_CHESS_BY_TYPE));
   const [selectedChess, setSelectedChess] = useState<CHESSS_OBJ | "">();
+  const [chessVisualize, setChessVisualize] = useState<CHESS_PIECES>("bk");
   const [currentChessBoard, setCurrentChessBoard] = useState<
     Array<(CHESSS_OBJ & { show?: boolean }) | "">[]
   >(
@@ -254,10 +255,10 @@ function App() {
         <select
           name="chessList"
           id="chess-dropdown"
-          value={"bk"}
+          value={chessVisualize}
           onChange={(e) => {
             const chess = e.target.value as CHESS_PIECES;
-
+            setChessVisualize(chess);
             setCurrentChessBoard(
               [...currentChessBoard].map((row) =>
                 row.map((c) => (c ? { ...c, show: false, type: chess } : ""))
@@ -265,7 +266,7 @@ function App() {
             );
           }}
         >
-          {Object.keys(limitChessByType).map((chess) => (
+          {[...Object.keys(limitChessByType), "bn", "rn"].map((chess) => (
             <option value={chess}>{chess}</option>
           ))}
         </select>
