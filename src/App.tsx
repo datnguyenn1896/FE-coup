@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { io } from "socket.io-client";
 import "./App.css";
 import {
-  ACCEPTED_POSITION_INIT_RANDOM,
   CHESS_PIECES,
   CHESSS_OBJ,
   INIT_CHESS_BOARD,
-  LIMIT_CHESS_BY_TYPE,
+  LIMIT_CHESS_BY_TYPE
 } from "./constants";
 
 function App() {
@@ -14,6 +14,10 @@ function App() {
     row: number;
     col: number;
   }>();
+  const [chessSide, setChessSide] = useState<"blackTop" | "redTop">("blackTop");
+  const socket = io("http://localhost:3001/", {
+    path: "/socket",
+  });
   const initChessBoard: (
     | ""
     | (CHESSS_OBJ & {
@@ -30,6 +34,23 @@ function App() {
     )
   );
   const [log, setLog] = useState<string[]>([]);
+  socket.on(
+    "move",
+    (data: { from: number[]; to: number[]; chess?: string }) => {
+      const [fromRow, fromCol] = data.from;
+      const [toRow, toCol] = data.to;
+      moveChess([fromRow, fromCol], [toRow, toCol]);
+      if (data.chess) {
+        showChess({ row: toRow, col: toCol, type: data.chess as CHESS_PIECES });
+      }
+      console.log(log);
+    }
+  );
+  socket.on("change-side", ({ side }) => {
+    if (side === chessSide) return;
+    swapSide();
+    setChessSide(side);
+  });
   const randomizeChessInit = () => {
     const randomizedBoard: Array<CHESSS_OBJ>[] = [...initChessBoard].map(
       (row, rowIndex) => {
@@ -52,6 +73,8 @@ function App() {
     setCurrentChessBoard(randomizedBoard);
   };
   const moveChess = (from: [number, number], to: [number, number]) => {
+    console.log(from, to);
+
     if (from[0] === to[0] && from[1] === to[1]) return;
     const newChessBoard = [...currentChessBoard];
     newChessBoard[to[0]][to[1]] = newChessBoard[from[0]][from[1]];
@@ -133,10 +156,6 @@ function App() {
         const [randomRow, randomCol] = randomedPosition[randomIndex]
           .split("-")
           .map(Number);
-        const isChessDown = ACCEPTED_POSITION_INIT_RANDOM.some(
-          (pos) => pos[0] === randomRow && pos[1] === randomCol
-        );
-
         randomedPosition.splice(randomIndex, 1);
         chessBoard[randomRow][randomCol] = {
           type: type,
@@ -148,7 +167,10 @@ function App() {
     }
     setCurrentChessBoard(chessBoard);
   };
-
+  const swapSide = () => {
+    const newChessBoard = [...currentChessBoard].reverse();
+    setCurrentChessBoard(newChessBoard);
+  };
   return (
     <>
       <div className="w-[694px] h-[789px] bg-[url('./assets/images/broad.png')] p-3 object-scale-down bg-no-repeat">
@@ -158,7 +180,7 @@ function App() {
               return (
                 <div
                   key={colIndex}
-                  className={`w-[77px] h-[74px] flex justify-center items-center scale-[1.8] gap-0 `}
+                  className={`w-[70px] h-[66px] flex justify-center items-center gap-0 scale-[1.7] m-1`}
                   onClick={() => {
                     if (selectedPostion) {
                       handleMove(
@@ -222,6 +244,12 @@ function App() {
           onClick={randomPosition}
         >
           Random All
+        </button>
+        <button
+          className="bg-purple-200 py-2 px-3 rounded-lg"
+          onClick={swapSide}
+        >
+          Swap
         </button>
         <select
           name="chessList"
