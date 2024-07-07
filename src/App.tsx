@@ -151,14 +151,14 @@ function App() {
 
   return (
     <>
-      <div className="w-[694px] h-[789px] bg-[url('./assets/images/broad.png')] p-3">
+      <div className="w-[694px] h-[789px] bg-[url('./assets/images/broad.png')] p-3 object-scale-down bg-no-repeat">
         {currentChessBoard.map((row, rowIndex) => (
           <div className="flex" key={rowIndex}>
             {row.map((col, colIndex: number) => {
               return (
                 <div
                   key={colIndex}
-                  className={`w-[77px] h-[74px] flex justify-center items-center scale-[1.3] `}
+                  className={`w-[77px] h-[74px] flex justify-center items-center scale-[1.8] gap-0 `}
                   onClick={() => {
                     if (selectedPostion) {
                       handleMove(
