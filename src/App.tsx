@@ -143,6 +143,7 @@ function App() {
       ...prev,
       `Move from ${from} to ${to} (${selectedChess ? selectedChess?.key : ""})`,
     ]);
+    socket.emit("moved", { chessMoved: { from, to } });
   };
   const showChess = ({
     row,
