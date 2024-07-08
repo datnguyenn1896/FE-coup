@@ -132,8 +132,6 @@ function App() {
     setCurrentChessBoard(randomizedBoard);
   };
   const moveChess = (from: [number, number], to: [number, number]) => {
-    console.log(from, to);
-
     if (from[0] === to[0] && from[1] === to[1]) return;
     const newChessBoard = [...currentChessBoard];
     newChessBoard[to[0]][to[1]] = newChessBoard[from[0]][from[1]];
@@ -143,6 +141,7 @@ function App() {
       ...prev,
       `Move from ${from} to ${to} (${selectedChess ? selectedChess?.key : ""})`,
     ]);
+    console.log(from, to);
     socket.emit("moved", { chessMoved: { from, to } });
   };
   const showChess = ({
