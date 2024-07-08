@@ -46,7 +46,6 @@ function App() {
             type: data.chess as CHESS_PIECES,
           });
         }
-        console.log(log);
       }
     );
     socket.on("change-side", ({ side }) => {
@@ -63,7 +62,6 @@ function App() {
   }, [currentChessBoard]);
   const updateBoard = (board: Record<string, CHESS_PIECES>) => {
     const temp = [...currentChessBoard];
-    console.log(board, "board");
     const result = temp.map((row, rowIndex) => {
       return row.map((col, colIndex) => {
         return {
@@ -74,7 +72,42 @@ function App() {
         };
       });
     });
+
     setCurrentChessBoard(result as any);
+    const chessMoved = getMovedChessByBoard(result, temp);
+    if (chessMoved.from && chessMoved.to) {
+      socket.emit("moved", { chessMoved });
+    }
+  };
+  const getMovedChessByBoard = (currentBoard: any, prevBoard: any) => {
+    const newLog: { from?: number[]; to?: number[] } = {};
+    for (let i = 0; i < currentBoard.length; i++) {
+      for (let j = 0; j < currentBoard[i].length; j++) {
+        if (
+          typeof currentBoard[i][j]?.type === "undefined" ||
+          currentBoard[i][j]?.type === ""
+        ) {
+          if (
+            typeof prevBoard[i][j]?.type !== "undefined" &&
+            prevBoard[i][j]?.type !== ""
+          ) {
+            newLog.from = [i, j];
+          }
+        }
+        if (
+          typeof prevBoard[i][j]?.type === "undefined" ||
+          prevBoard[i][j]?.type === ""
+        ) {
+          if (
+            typeof currentBoard[i][j]?.type !== "undefined" &&
+            currentBoard[i][j]?.type !== ""
+          ) {
+            newLog.to = [i, j];
+          }
+        }
+      }
+    }
+    return newLog;
   };
 
   const randomizeChessInit = () => {
