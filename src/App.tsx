@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
 import {
@@ -15,9 +15,7 @@ function App() {
     col: number;
   }>();
   const [chessSide, setChessSide] = useState<"blackTop" | "redTop">("blackTop");
-  const socket = io("http://localhost:3001/", {
-    path: "/socket",
-  });
+  const socket = io("http://localhost:5000");
   const initChessBoard: (
     | ""
     | (CHESSS_OBJ & {
@@ -26,7 +24,6 @@ function App() {
   )[][] = JSON.parse(JSON.stringify(INIT_CHESS_BOARD));
   const limitChessByType = JSON.parse(JSON.stringify(LIMIT_CHESS_BY_TYPE));
   const [selectedChess, setSelectedChess] = useState<CHESSS_OBJ | "">();
-  const [chessVisualize, setChessVisualize] = useState<CHESS_PIECES>("bk");
   const [currentChessBoard, setCurrentChessBoard] = useState<
     Array<(CHESSS_OBJ & { show?: boolean }) | "">[]
   >(
@@ -35,23 +32,51 @@ function App() {
     )
   );
   const [log, setLog] = useState<string[]>([]);
-  socket.on(
-    "move",
-    (data: { from: number[]; to: number[]; chess?: string }) => {
-      const [fromRow, fromCol] = data.from;
-      const [toRow, toCol] = data.to;
-      moveChess([fromRow, fromCol], [toRow, toCol]);
-      if (data.chess) {
-        showChess({ row: toRow, col: toCol, type: data.chess as CHESS_PIECES });
+  useEffect(() => {
+    socket.on(
+      "move",
+      (data: { from: number[]; to: number[]; chess?: string }) => {
+        const [fromRow, fromCol] = data.from;
+        const [toRow, toCol] = data.to;
+        moveChess([fromRow, fromCol], [toRow, toCol]);
+        if (data.chess) {
+          showChess({
+            row: toRow,
+            col: toCol,
+            type: data.chess as CHESS_PIECES,
+          });
+        }
+        console.log(log);
       }
-      console.log(log);
-    }
-  );
-  socket.on("change-side", ({ side }) => {
-    if (side === chessSide) return;
-    swapSide();
-    setChessSide(side);
-  });
+    );
+    socket.on("change-side", ({ side }) => {
+      if (side === chessSide) return;
+      swapSide();
+      setChessSide(side);
+    });
+    socket.on("update-board", ({ board }) => {
+      updateBoard(board);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [currentChessBoard]);
+  const updateBoard = (board: Record<string, CHESS_PIECES>) => {
+    const temp = [...currentChessBoard];
+    console.log(board, "board");
+    const result = temp.map((row, rowIndex) => {
+      return row.map((col, colIndex) => {
+        return {
+          ...col,
+          type: board[`${rowIndex}-${colIndex}`]
+            ? board[`${rowIndex}-${colIndex}`]
+            : "",
+        };
+      });
+    });
+    setCurrentChessBoard(result as any);
+  };
+
   const randomizeChessInit = () => {
     const randomizedBoard: Array<CHESSS_OBJ>[] = [...initChessBoard].map(
       (row, rowIndex) => {
@@ -255,10 +280,10 @@ function App() {
         <select
           name="chessList"
           id="chess-dropdown"
-          value={chessVisualize}
+          value={"bk"}
           onChange={(e) => {
             const chess = e.target.value as CHESS_PIECES;
-            setChessVisualize(chess);
+
             setCurrentChessBoard(
               [...currentChessBoard].map((row) =>
                 row.map((c) => (c ? { ...c, show: false, type: chess } : ""))
@@ -266,7 +291,7 @@ function App() {
             );
           }}
         >
-          {[...Object.keys(limitChessByType), "bn", "rn"].map((chess) => (
+          {Object.keys(limitChessByType).map((chess) => (
             <option value={chess}>{chess}</option>
           ))}
         </select>
