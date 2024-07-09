@@ -283,7 +283,7 @@ function App() {
                         {Object.keys(LIMIT_CHESS_BY_TYPE)
                           .sort()
                           .filter((item) => {
-                            return item[0] === col.type[0];
+                            return item[0] === col.type[0] && item[1] !== "k";
                           })
                           .map((item, index) => {
                             return (
