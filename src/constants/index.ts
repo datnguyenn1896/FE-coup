@@ -228,3 +228,22 @@ export const ACCEPTED_POSITION_INIT_RANDOM: Array<[number, number]> = [
   [9, 7],
   [9, 8],
 ];
+export const NAME_CHESS: Record<
+  Exclude<CHESS_PIECES, "" | "bn" | "rn">,
+  string
+> = {
+  rk: "Vua đỏ",
+  bk: "Vua đen",
+  rp: "Pháo đỏ",
+  bp: "Pháo đen",
+  rx: "Xe đỏ",
+  bx: "Xe đen",
+  rm: "Mã đỏ",
+  bm: "Mã đen",
+  rt: "Tượng đỏ",
+  bt: "Tượng đen",
+  rs: "Sĩ đỏ",
+  bs: "Sĩ đen",
+  bb: "Tốt đen",
+  rb: "Tốt đỏ",
+};

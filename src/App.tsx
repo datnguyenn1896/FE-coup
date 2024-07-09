@@ -6,6 +6,7 @@ import {
   CHESSS_OBJ,
   INIT_CHESS_BOARD,
   LIMIT_CHESS_BY_TYPE,
+  NAME_CHESS,
 } from "./constants";
 import { Button } from "./components/ui/button";
 import {
@@ -281,6 +282,9 @@ function App() {
                       <ContextMenuContent>
                         {Object.keys(LIMIT_CHESS_BY_TYPE)
                           .sort()
+                          .filter((item) => {
+                            return item[0] === col.type[0];
+                          })
                           .map((item, index) => {
                             return (
                               <ContextMenuItem
@@ -295,7 +299,14 @@ function App() {
                                   setCurrentChessBoard(temp);
                                 }}
                               >
-                                {item}
+                                {
+                                  NAME_CHESS[
+                                    item as Exclude<
+                                      CHESS_PIECES,
+                                      "" | "bn" | "rn"
+                                    >
+                                  ]
+                                }
                               </ContextMenuItem>
                             );
                           })}
