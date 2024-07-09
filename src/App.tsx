@@ -7,7 +7,13 @@ import {
   INIT_CHESS_BOARD,
   LIMIT_CHESS_BY_TYPE,
 } from "./constants";
-
+import { Button } from "./components/ui/button";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 function App() {
   const [isRandomize, setIsRandomize] = useState(false);
   const [selectedPostion, setSelectedPostion] = useState<{
@@ -256,16 +262,45 @@ function App() {
                   }}
                 >
                   {col && (
-                    <div
-                      className={`w-[50px] h-[50px] flex justify-center items-center transition-all duration-500 ${
-                        rowIndex === selectedPostion?.row &&
-                        colIndex === selectedPostion?.col
-                          ? "scale-[1.2]"
-                          : ""
-                      }`}
-                    >
-                      <img src={`src/assets/images/${col.type}.png`} alt="" />
-                    </div>
+                    <ContextMenu>
+                      <ContextMenuTrigger>
+                        <div
+                          className={`w-[50px] h-[50px] flex justify-center items-center transition-all duration-500 ${
+                            rowIndex === selectedPostion?.row &&
+                            colIndex === selectedPostion?.col
+                              ? "scale-[1.2]"
+                              : ""
+                          }`}
+                        >
+                          <img
+                            src={`src/assets/images/${col.type}.png`}
+                            alt=""
+                          />
+                        </div>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent>
+                        {Object.keys(LIMIT_CHESS_BY_TYPE)
+                          .sort()
+                          .map((item, index) => {
+                            return (
+                              <ContextMenuItem
+                                key={index}
+                                onClick={(e: Event) => {
+                                  e.stopPropagation();
+                                  const temp = [...currentChessBoard];
+                                  if (temp[rowIndex][colIndex] !== "") {
+                                    temp[rowIndex][colIndex].type =
+                                      item as CHESS_PIECES;
+                                  }
+                                  setCurrentChessBoard(temp);
+                                }}
+                              >
+                                {item}
+                              </ContextMenuItem>
+                            );
+                          })}
+                      </ContextMenuContent>
+                    </ContextMenu>
                   )}
                 </div>
               );
